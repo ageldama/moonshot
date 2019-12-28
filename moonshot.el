@@ -172,9 +172,9 @@ Evaluates as nil when `DIR' is nil."
 
 (defun* moonshot:file-list->distance-alist (fn file-names &key dist-fun)
   "Calculate string difference distances from `FN' of given `FILE-NAMES'using `DIST-FUN'.
-Evaluates as nil when `FILE-NAMES' is nil."
+Evaluates as nil when `FN' or `FILE-NAMES' is nil."
   (block file-list->dist-alist
-    (unless file-names
+    (unless (and fn file-names)
       (return-from file-list->dist-alist nil))
     (let ((fn* (f-filename fn)))
       (mapcar (lambda (i)
