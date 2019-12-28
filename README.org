@@ -5,11 +5,30 @@
 2) Can configure build directory per project.
 
 
-* TODO Installation
+* Installation
+  
+  1) Requires:
+     1) [[https://github.com/rejeep/f.el][f]]
+     2) [[https://github.com/magnars/s.el][s]]
+     3) [[https://github.com/bbatsov/projectile][projectile]]
+     4) [[https://github.com/abo-abo/swiper][ivy]]
+     5) [[https://github.com/realgud/realgud][realgud]]
+     6) levenshtein
+        1) Aaron S. Hawley <ashawley at uvm dot edu>
+        2) Art Taylor
+  2) Use [[https://github.com/quelpa/quelpa][Quelpa]]
+     #+BEGIN_SRC emacs-lisp
+       (quelpa '(moonshot :repo "ageldama/moonshot" :fetcher github))
+       (require 'moonshot)
+     #+END_SRC
 
 
-* TODO Key Bindings and Functionalities
-
+* Key Bindings and Functionalities
+  #+BEGIN_SRC emacs-lisp
+    (global-set-key (kbd "C-c x x") 'moonshot:run-executable)
+    (global-set-key (kbd "C-c x d") 'moonshot:run-debugger)
+    (global-set-key (kbd "C-c x c") 'moonshot:run-runner)
+  #+END_SRC
 
 
 * TODO Customizations
