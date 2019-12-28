@@ -19,7 +19,7 @@
 ;; 1) File local variable `moonshot:project-build-dir', and if it is:
 ;;   1) a string starts with `/', use it,
 ;;   2) a string and does not starts with `/',
-;;      - Append it to the directory of current buffer.
+;;      - Append it to project root directory or the directory of current buffer.
 ;;      - If the directory of current buffer is not available, it's nil.
 ;;   3) a list, returns the value of `eval'-ed on it.
 ;;   4) Implemented in `moonshot:project-build-dir-by-value' function.
@@ -74,9 +74,12 @@
 (require 'projectile)
 
 ;;; --- Variables
-(defvar moonshot:project-build-dir nil)
 
-(defvar moonshot:debuggers
+(defcustom moonshot:project-build-dir nil
+  "Project build directory. Can be a string or a form."
+  :group 'moonshot)
+
+(defcustom moonshot:debuggers
   '(
     ;; `COMMAND' . `DEBUGGER-FN'
     ("gdb #realgud" . realgud:gdb)
@@ -92,14 +95,22 @@
     ("zshdb #realgud" . realgud:zshdb)
     ("kshdb #realgud" . realgud:kshdb)
     ("dgawk #realgud" . realgud:dgawk)
-    ))
+    )
+  "Supported debuggers."
+  :group 'moonshot)
 
-(defvar moonshot:runners-preset
+(defcustom moonshot:runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
     "cd \"%b\"; ninja"
-    ))
+    )
+  "Available shell command presets."
+  :group 'moonshot)
 
-(defvar moonshot:runners nil)
+(defcustom moonshot:runners
+  nil
+  "Shell commands for file variables / `.dir-locals.el'."
+  :group 'moonshot)
+  
 
 
 
@@ -111,12 +122,13 @@
                             val ; absolute-path
                           ;; relative-path
                           (when-let ((it buffer-file-name))
-                            (s-concat (file-name-directory it) val))))
+                            (s-concat (or (projectile-project-root)
+                                          (file-name-directory it)) val))))
                 (t (eval val)))))
     (when-let ((it path))
       (unless (f-exists? it)
         (error "Invalid path or File/directory not found: %s" it)))
-    path))
+    (expand-file-name path)))
 
 (defun moonshot:project-build-dir ()
   "Find the build directory by one of following methods sequentially:
@@ -124,7 +136,7 @@
 1) File local variable `moonshot:project-build-dir', and if it is:
   1) a string starts with `/', use it,
   2) a string and does not starts with `/',
-     - Append it to the directory of current buffer.
+     - Append it to project root directory or the directory of current buffer.
      - If the directory of current buffer is not available, it's nil.
   3) a list, returns the value of `eval'-ed on it.
   4) Implemented in `moonshot:project-build-dir-by-value' function.
