@@ -76,8 +76,10 @@
 ;;; --- Variables
 
 (defcustom moonshot:project-build-dir nil
-  "Project build directory. Can be a string or a form."
-  :group 'moonshot)
+  "Project build directory.
+Can be a string or a form."
+  :group 'moonshot
+  :type 'sexp)
 
 (defcustom moonshot:debuggers
   '(
@@ -97,19 +99,22 @@
     ("dgawk #realgud" . realgud:dgawk)
     )
   "Supported debuggers."
-  :group 'moonshot)
+  :group 'moonshot
+  :type '(alist :key string :value function))
 
 (defcustom moonshot:runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
     "cd \"%b\"; ninja"
     )
   "Available shell command presets."
-  :group 'moonshot)
+  :group 'moonshot
+  :type '(list string))
 
 (defcustom moonshot:runners
   nil
   "Shell commands for file variables / `.dir-locals.el'."
-  :group 'moonshot)
+  :group 'moonshot
+  :type '(list string))
   
 
 
@@ -182,6 +187,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
            (lambda (x y) (< (car x) (car y))))))
 ;; Try: (list-executable-files-and-sort-by "/bin" "sh")
 
+;;;###autoload
 (defun moonshot:run-command-with (cmd mkcmd-fun run-fun)
   "Read and Run with `RUN-FUN' and pass `CMD' filtered by `MKCMD-FUN' as parameter."
   (interactive)
@@ -190,7 +196,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
     (funcall run-fun cmd*)))
 
 
-
+;;;###autoload
 (defun moonshot:run-executable ()
   "Select an executable file in `moonshot:project-build-dir', similar to buffer filename."
   (interactive)
@@ -219,6 +225,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
   (s-trim (replace-regexp-in-string  "\\#.*$" "" s)))
 
 
+;;;###autoload
 (defun moonshot:run-debugger (debugger)
   "Launch debugger, one of `moonshot:debuggers', with an executable selection.
 
@@ -292,6 +299,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 
 (defvar moonshot:run-runner/history nil)
 
+;;;###autoload
 (defun moonshot:run-runner ()
   "Run runner."
   (interactive)
