@@ -105,7 +105,8 @@ Can be a string or a form."
 (defcustom moonshot:runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
     "cd \"%b\"; ninja"
-    "source \"%b/bin/activate\"; cd \"%p\"; \"%a\""
+    "source \"%b/bin/activate\"; cd \"%p\"; \"%a\"  # Run with Virtualenv"
+    "cd \"%p\"; \"%a\"  # Run script"
     )
   "Available shell command presets."
   :group 'moonshot
