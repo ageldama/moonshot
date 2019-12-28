@@ -161,20 +161,27 @@ For example, `*scratch*'-buffer"
 
 ;;; --- Run/Debug
 (defun moonshot:list-executable-files (dir)
-  "Find every executable files under `DIR'."
-  (seq-filter 'file-executable-p
-              (directory-files-recursively
-               dir ".*")))
+  "Find every executable files under `DIR'.
+Evaluates as nil when `DIR' is nil."
+  (if dir
+      (seq-filter 'file-executable-p
+                  (directory-files-recursively
+                   dir ".*"))
+    ;; `dir'=nil => empty
+    nil))
 
 (defun* moonshot:file-list->distance-alist (fn file-names &key dist-fun)
-  "Calculate string difference distances from `FN' of given `FILE-NAMES'
-using `DIST-FUN'"
-  (let ((fn* (f-filename fn)))
-    (mapcar (lambda (i)
-              (cons (funcall (or dist-fun #'levenshtein-distance)
-                             fn* (f-filename i))
-                    i))
-            file-names)))
+  "Calculate string difference distances from `FN' of given `FILE-NAMES'using `DIST-FUN'.
+Evaluates as nil when `FILE-NAMES' is nil."
+  (block file-list->dist-alist
+    (unless file-names
+      (return-from file-list->dist-alist nil))
+    (let ((fn* (f-filename fn)))
+      (mapcar (lambda (i)
+                (cons (funcall (or dist-fun #'levenshtein-distance)
+                               fn* (f-filename i))
+                      i))
+              file-names))))
 
 (defun moonshot:list-executable-files-and-sort-by (dir file-name)
   "Find every executable file names under `DIR'.
