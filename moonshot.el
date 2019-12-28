@@ -12,8 +12,53 @@
 ;; This file is not part of GNU Emacs
 ;; See `LICENSE'
 
-
 ;;; Commentary:
+
+;; << Project Build Directory >>
+;;
+;; 1) File local variable `moonshot:project-build-dir', and if it is:
+;;   1) a string starts with `/', use it,
+;;   2) a string and does not starts with `/',
+;;      - Append it to the directory of current buffer.
+;;      - If the directory of current buffer is not available, it's nil.
+;;   3) a list, returns the value of `eval'-ed on it.
+;;   4) Implemented in `moonshot:project-build-dir-by-value' function.
+;;
+;; 2) Ask to Projectile
+;;
+;; 3) Just the directory of current buffer
+
+;; << Launch Executable >>
+;;
+;;  `moonshot:run-executable'
+;;
+;;  1) Will search executable files under `moonshot:project-build-dir'.
+;;  2) Suggest similar executable files first from buffer filename.
+
+;; << Launch Debugger with Executable >>
+;;
+;;  `moonshot:run-debugger'
+;;
+;;  - Use same way with `moonshot:run-executable' to choose an executable to debug.
+;;  - Supported debuggers are listed at `moonshot:debuggers'.
+
+;; << Run Shell Command in Compilation-Mode >>
+;;
+;;  `moonshot:run-runner'
+;;
+;;  - Global shell command presets are `moonshot:runners-preset'.
+;;  - Per project commands can be added to `moonshot:runners', by specifying variable in `.dir-locals.el' etc.
+;;
+;;   <<< Command String Expansion >>>
+;;    - Following format specifiers are will expanded in command string:
+;;      %a  absolute pathname            ( /usr/local/bin/netscape.bin )
+;;      %f  file name without directory  ( netscape.bin )
+;;      %n  file name without extension  ( netscape )
+;;      %e  extension of file name       ( bin )
+;;      %d  directory                    ( /usr/local/bin/ )
+;;      %p  project root directory       ( /home/who/blah/ ), using Projectile
+;;      %b  project build directory      ( /home/who/blah/build/ ), using `moonshot:project-build-dir'"
+
 
 ;;; Code:
 (eval-when-compile
