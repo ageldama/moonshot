@@ -31,10 +31,32 @@
   #+END_SRC
 
 
-* TODO Customizations
+* Customizations
 
-** TODO Project Build Directory
+** per Project Build Directory
+   1) Set ~moonshot:project-build-dir~ in your file local variable or
+      ~.dir-locals.el~.
+   2) can be:
+      1) Relative path string: appended to ~(projectile-project-root)~
+         or the directory of current buffer.
+      2) Absolute path string.
+      3) Lisp form: evaluates as a string of build directory path.
 
-** TODO Additional Debugger
+** Additional Debugger
+   - See ~moonshot:debuggers~
+     - (TODO: describe more)
 
-** TODO Shell Command
+** Shell Command
+   #+BEGIN_SRC emacs-lisp
+   (add-to-list 'moonshot:runners "npm run sth -d %p")
+   #+END_SRC
+
+   Shell command string can contain variable specifiers:
+
+   1) ~%a~  absolute pathname            ( ~/usr/local/bin/netscape.bin~ )
+   2) ~%f~  file name without directory  ( ~netscape.bin~ )
+   3) ~%n~  file name without extension  ( ~netscape~ )
+   4) ~%e~  extension of file name       ( ~bin~ )
+   5) ~%d~  directory                    ( ~/usr/local/bin/~ )
+   6) ~%p~  project root directory       ( ~/home/who/blah/~ ), using Projectile
+   7) ~%b~  project build directory      ( ~/home/who/blah/build/~ ), using ~moonshot:project-build-dir~
