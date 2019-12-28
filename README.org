@@ -1,0 +1,21 @@
+#+TITLE: moonshot.el
+
+
+1) Run executable file, debug and build commands on project.
+2) Can configure build directory per project.
+
+
+* TODO Installation
+
+
+* TODO Key Bindings and Functionalities
+
+
+
+* TODO Customizations
+
+** TODO Project Build Directory
+
+** TODO Additional Debugger
+
+** TODO Shell Command
