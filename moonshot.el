@@ -198,10 +198,8 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
            (lambda (x y) (< (car x) (car y))))))
 ;; Try: (list-executable-files-and-sort-by "/bin" "sh")
 
-;;;###autoload
 (defun moonshot:run-command-with (cmd mkcmd-fun run-fun)
   "Read and Run with `RUN-FUN' and pass `CMD' filtered by `MKCMD-FUN' as parameter."
-  (interactive)
   (let* ((cmd*
           (read-from-minibuffer "Cmd: " (funcall mkcmd-fun cmd))))
     (funcall run-fun cmd*)))
@@ -219,10 +217,6 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
                                                    (lambda (cmd)
                                                      (format "cd '%s'; '%s'" (f-dirname cmd) cmd))
                                                    #'compile)))))
-
-
-
-
  
 (defun moonshot:alist-keys (l)
   "CARs of an Alist `L'."
