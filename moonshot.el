@@ -241,6 +241,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
                                :history 'moonshot:run-debugger/history)))
   (message "debugger=[%s]" debugger)
   (let ((fn (buffer-file-name))
+        (debugger-cmd (moonshot:%remove-sharp-comment debugger))
         (debugger-func (cdr (assoc debugger moonshot:debuggers))))
     (ivy-read "Select an executable to debug: "
               (moonshot:list-executable-files-and-sort-by (moonshot:project-build-dir) fn)
@@ -248,7 +249,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
                         (moonshot:run-command-with cmd
                                                    (lambda (cmd)
                                                      (format "%s \"%s\""
-                                                             (moonshot:%remove-sharp-comment debugger) cmd))
+                                                             debugger-cmd cmd))
                                                    debugger-func)))))
 
 
