@@ -110,7 +110,7 @@ Can be a string or a form."
     "source \"%b/bin/activate\"; cd \"%p\"; \"%a\"  # Run with Virtualenv"
     "cd \"%p\"; \"%a\"  # Run script"
     "clang-format -i \"%a\""
-    "clang-tidy -i \"%b\" \"%a\" #--fix"
+    "clang-tidy -p \"%b\" \"%a\" #--fix"
     )
   "Available shell command presets."
   :group 'moonshot
