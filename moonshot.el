@@ -105,6 +105,8 @@ Can be a string or a form."
 (defcustom moonshot:runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
     "cd \"%b\"; ninja"
+    "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; \"%a\"  # Run with Virtualenv"
+    "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; pip install -r requirements.txt  # Run with Virtualenv"
     "source \"%b/bin/activate\"; cd \"%p\"; \"%a\"  # Run with Virtualenv"
     "cd \"%p\"; \"%a\"  # Run script"
     )
@@ -243,6 +245,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
                                (moonshot:alist-keys moonshot:debuggers)
                                :require-match t
                                :history 'moonshot:run-debugger/history)))
+  (message "debugger=[%s]" debugger)
   (let ((fn (buffer-file-name))
         (debugger-func (cdr (assoc debugger moonshot:debuggers))))
     (ivy-read "Select an executable to debug: "
@@ -250,7 +253,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
               :action (lambda (cmd)
                         (moonshot:run-command-with cmd
                                                    (lambda (cmd)
-                                                     (format "\"%s\" \"%s\""
+                                                     (format "%s \"%s\""
                                                              (moonshot:%remove-sharp-comment debugger) cmd))
                                                    debugger-func)))))
 
