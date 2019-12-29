@@ -109,6 +109,7 @@ Can be a string or a form."
     "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; pip install -r requirements.txt  # Run with Virtualenv"
     "source \"%b/bin/activate\"; cd \"%p\"; \"%a\"  # Run with Virtualenv"
     "cd \"%p\"; \"%a\"  # Run script"
+    "clang-format -i \"%a\""
     )
   "Available shell command presets."
   :group 'moonshot
