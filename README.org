@@ -3,8 +3,8 @@
 
 #+CAPTION: Small Screencast
 #+NAME: Screencast-2019-12-30-23_26_07.gif
-#+ATTR_HTML: width="200px"
-#+ATTR_ORG: :width 200
+#+ATTR_HTML: :width 300px
+#+ATTR_ORG: :width 300
 [[./doc/Screencast-2019-12-30-23_26_07.gif]]
 
 
