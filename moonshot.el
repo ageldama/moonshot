@@ -121,7 +121,7 @@ Can be a string or a form."
   "Shell commands for file variables / `.dir-locals.el'."
   :group 'moonshot
   :type '(list string))
-  
+
 
 
 
@@ -132,9 +132,8 @@ Can be a string or a form."
                 (string (if (s-starts-with? "/" val)
                             val ; absolute-path
                           ;; relative-path
-                          (when-let ((it buffer-file-name))
-                            (s-concat (or (projectile-project-root)
-                                          (file-name-directory it)) val))))
+                          (s-concat (or (projectile-project-root)
+                                        (pwd)) val)))
                 (t (eval val)))))
     (when-let ((it path))
       (unless (f-exists? it)
@@ -161,8 +160,7 @@ For example, `*scratch*'-buffer"
   (or (when-let ((it moonshot:project-build-dir)) ; file local variable
         (moonshot:project-build-dir-by-value it))
       (projectile-project-root)
-      (when-let ((it buffer-file-name))
-        (file-name-directory it))))
+      (pwd)))
 
 
 ;;; --- Run/Debug
@@ -275,16 +273,15 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
          (file-name "")
          (file-name-without-ext "")
          (file-ext "")
-         (dir "")
+         (dir (or (pwd) ""))
          (project-root-dir (projectile-project-root))
          (project-build-dir (moonshot:project-build-dir)))
     ;; fill in
     (unless (s-blank-str? abs-path)
       (setq file-name (or (f-filename abs-path) "")
-            file-ext (or (f-ext file-name) "")
-            dir (or (f-dirname abs-path) ""))
-      (unless (and (s-blank-str? dir)
-                   (s-suffix? "/" dir))
+            file-ext (or (f-ext file-name) ""))
+      (unless (or (s-blank-str? dir)
+                  (s-suffix? "/" dir))
         (setq dir (s-concat dir "/")))
       (setq file-name-without-ext (s-chop-suffix (if (not (s-blank-str? file-ext))
                                                      (s-concat "." file-ext)
