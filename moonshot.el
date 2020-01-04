@@ -184,6 +184,7 @@ Evaluates as nil when `FN' or `FILE-NAMES' is nil."
 (defun moonshot-list-executable-files-and-sort-by (dir file-name)
   "Find every executable file names under `DIR'.
 The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
+  (message "Searching in `%s' for `%s' ..." dir file-name)
   (mapcar #'cdr
           (sort
            (moonshot-file-list->distance-alist
