@@ -185,12 +185,15 @@ Evaluates as nil when `FN' or `FILE-NAMES' is nil."
   "Find every executable file names under `DIR'.
 The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
   (message "Searching in `%s' for `%s' ..." dir file-name)
-  (mapcar #'cdr
-          (sort
-           (moonshot-file-list->distance-alist
-            file-name
-            (moonshot-list-executable-files dir))
-           (lambda (x y) (< (car x) (car y))))))
+  (if file-name
+      (mapcar #'cdr
+              (sort
+               (moonshot-file-list->distance-alist
+                file-name
+                (moonshot-list-executable-files dir))
+               (lambda (x y) (< (car x) (car y)))))
+    ;; else, no sorting
+    (moonshot-list-executable-files dir)))
 ;; Try: (list-executable-files-and-sort-by "/bin" "sh")
 
 (defun moonshot-run-command-with (cmd mkcmd-fun run-fun)
