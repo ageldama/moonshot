@@ -127,7 +127,7 @@ Can be a string or a form."
                             val ; absolute-path
                           ;; relative-path
                           (s-concat (or (projectile-project-root)
-                                        (pwd)) val)))
+                                        default-directory) val)))
                 (t (eval val)))))
     (when-let ((it path))
       (unless (f-exists? it)
@@ -154,7 +154,7 @@ For example, `*scratch*'-buffer"
   (or (when-let ((it moonshot-project-build-dir)) ; file local variable
         (moonshot-project-build-dir-by-value it))
       (projectile-project-root)
-      (pwd)))
+      default-directory))
 
 
 ;;; --- Run/Debug
@@ -266,7 +266,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
          (file-name "")
          (file-name-without-ext "")
          (file-ext "")
-         (dir (or (pwd) ""))
+         (dir (or default-directory ""))
          (project-root-dir (projectile-project-root))
          (project-build-dir (moonshot-project-build-dir)))
     ;; fill in
