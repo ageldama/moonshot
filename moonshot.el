@@ -207,7 +207,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 
 ;;;###autoload
 (defun moonshot:run-executable ()
-  "Select an executable file in `moonshot:project-build-dir', similar to buffer filename."
+  "Select an executable file in command `moonshot:project-build-dir', similar to buffer filename."
   (interactive)
   (let ((fn (buffer-file-name)))
     (ivy-read "Select an executable to run: "
@@ -267,7 +267,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 %e  extension of file name       ( bin )
 %d  directory                    ( /usr/local/bin/ )
 %p  project root directory       ( /home/who/blah/ ), using Projectile
-%b  project build directory      ( /home/who/blah/build/ ), using `moonshot:project-build-dir'"
+%b  project build directory      ( /home/who/blah/build/ ), using variable `moonshot:project-build-dir'"
   (let* ((s path-str)
          (abs-path (or (buffer-file-name) ""))
          (file-name "")
