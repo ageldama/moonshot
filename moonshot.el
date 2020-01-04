@@ -6,7 +6,7 @@
 ;; URL: https://github.com/ageldama/moonshot
 ;; Package-Version: 1.0.0
 ;; Version: 1.0.0
-;; Package-Requires: ((cl-lib "0.5") (f "0.18") (s "1.11.0") (projectile "2.0.0") (counsel "0.11.0") (realgud "20190122.43") (seq "2.20") (levenshtein "20090830.1040"))
+;; Package-Requires: ((emacs "25.1") (cl-lib "0.5") (f "0.18") (s "1.11.0") (projectile "2.0.0") (counsel "0.11.0") (realgud "1.5.1") (seq "2.20") (levenshtein "1.0"))
 ;; Keywords: convenience, files, processes, tools, unix
 
 ;; This file is not part of GNU Emacs
@@ -16,13 +16,13 @@
 
 ;; << Project Build Directory >>
 ;;
-;; 1) File local variable `moonshot:project-build-dir', and if it is:
+;; 1) File local variable `moonshot-project-build-dir', and if it is:
 ;;   1) a string starts with `/', use it,
 ;;   2) a string and does not starts with `/',
 ;;      - Append it to project root directory or the directory of current buffer.
 ;;      - If the directory of current buffer is not available, it's nil.
 ;;   3) a list, returns the value of `eval'-ed on it.
-;;   4) Implemented in `moonshot:project-build-dir-by-value' function.
+;;   4) Implemented in `moonshot-project-build-dir-by-value' function.
 ;;
 ;; 2) Ask to Projectile
 ;;
@@ -30,24 +30,24 @@
 
 ;; << Launch Executable >>
 ;;
-;;  `moonshot:run-executable'
+;;  `moonshot-run-executable'
 ;;
-;;  1) Will search executable files under `moonshot:project-build-dir'.
+;;  1) Will search executable files under `moonshot-project-build-dir'.
 ;;  2) Suggest similar executable files first from buffer filename.
 
 ;; << Launch Debugger with Executable >>
 ;;
-;;  `moonshot:run-debugger'
+;;  `moonshot-run-debugger'
 ;;
-;;  - Use same way with `moonshot:run-executable' to choose an executable to debug.
-;;  - Supported debuggers are listed at `moonshot:debuggers'.
+;;  - Use same way with `moonshot-run-executable' to choose an executable to debug.
+;;  - Supported debuggers are listed at `moonshot-debuggers'.
 
 ;; << Run Shell Command in Compilation-Mode >>
 ;;
-;;  `moonshot:run-runner'
+;;  `moonshot-run-runner'
 ;;
-;;  - Global shell command presets are `moonshot:runners-preset'.
-;;  - Per project commands can be added to `moonshot:runners', by specifying variable in `.dir-locals.el' etc.
+;;  - Global shell command presets are `moonshot-runners-preset'.
+;;  - Per project commands can be added to `moonshot-runners', by specifying variable in `.dir-locals.el' etc.
 ;;
 ;;   <<< Command String Expansion >>>
 ;;    - Following format specifiers are will expanded in command string:
@@ -57,13 +57,10 @@
 ;;      %e  extension of file name       ( bin )
 ;;      %d  directory                    ( /usr/local/bin/ )
 ;;      %p  project root directory       ( /home/who/blah/ ), using Projectile
-;;      %b  project build directory      ( /home/who/blah/build/ ), using `moonshot:project-build-dir'"
+;;      %b  project build directory      ( /home/who/blah/build/ ), using `moonshot-project-build-dir'"
 
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
-
 (require 'cl-lib)
 (require 'f)
 (require 's)
@@ -75,15 +72,14 @@
 
 ;;; --- Variables
 
-(defcustom moonshot:project-build-dir nil
+(defcustom moonshot-project-build-dir nil
   "Project build directory.
 Can be a string or a form."
   :group 'moonshot
   :type 'sexp)
 
-(defcustom moonshot:debuggers
-  '(
-    ;; `COMMAND' . `DEBUGGER-FN'
+(defcustom moonshot-debuggers
+  '(;; `COMMAND' . `DEBUGGER-FN'
     ("gdb #realgud" . realgud:gdb)
     ("gdb #gud" . gud-gdb)
     ("lldb #realgud" . realgud:lldb)
@@ -96,13 +92,12 @@ Can be a string or a form."
     ("remake #realgud" . realgud:remake)
     ("zshdb #realgud" . realgud:zshdb)
     ("kshdb #realgud" . realgud:kshdb)
-    ("dgawk #realgud" . realgud:dgawk)
-    )
+    ("dgawk #realgud" . realgud:dgawk))
   "Supported debuggers."
   :group 'moonshot
   :type '(alist :key string :value function))
 
-(defcustom moonshot:runners-preset
+(defcustom moonshot-runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
     "cd \"%b\"; ninja"
     "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; \"%a\"  # Run with Virtualenv"
@@ -110,13 +105,12 @@ Can be a string or a form."
     "source \"%b/bin/activate\"; cd \"%p\"; \"%a\"  # Run with Virtualenv"
     "cd \"%p\"; \"%a\"  # Run script"
     "clang-format -i \"%a\""
-    "clang-tidy -p \"%b\" \"%a\" #--fix"
-    )
+    "clang-tidy -p \"%b\" \"%a\" #--fix")
   "Available shell command presets."
   :group 'moonshot
   :type '(list string))
 
-(defcustom moonshot:runners
+(defcustom moonshot-runners
   nil
   "Shell commands for file variables / `.dir-locals.el'."
   :group 'moonshot
@@ -126,7 +120,7 @@ Can be a string or a form."
 
 
 ;;; --- Project Build Directory
-(defun moonshot:project-build-dir-by-value (val)
+(defun moonshot-project-build-dir-by-value (val)
   "Composes the build directory path string by `VAL'."
   (let ((path (cl-typecase val
                 (string (if (s-starts-with? "/" val)
@@ -140,16 +134,16 @@ Can be a string or a form."
         (error "Invalid path or File/directory not found: %s" it)))
     (expand-file-name path)))
 
-(defun moonshot:project-build-dir ()
+(defun moonshot-project-build-dir ()
   "Find the build directory by one of following methods sequentially:
 
-1) File local variable `moonshot:project-build-dir', and if it is:
+1) File local variable `moonshot-project-build-dir', and if it is:
   1) a string starts with `/', use it,
   2) a string and does not starts with `/',
      - Append it to project root directory or the directory of current buffer.
      - If the directory of current buffer is not available, it's nil.
   3) a list, returns the value of `eval'-ed on it.
-  4) Implemented in `moonshot:project-build-dir-by-value' function.
+  4) Implemented in `moonshot-project-build-dir-by-value' function.
 
 2) Ask to Projectile
 
@@ -157,14 +151,14 @@ Can be a string or a form."
 
 Thus, can be evaluated as nil on some special buffers.
 For example, `*scratch*'-buffer"
-  (or (when-let ((it moonshot:project-build-dir)) ; file local variable
-        (moonshot:project-build-dir-by-value it))
+  (or (when-let ((it moonshot-project-build-dir)) ; file local variable
+        (moonshot-project-build-dir-by-value it))
       (projectile-project-root)
       (pwd)))
 
 
 ;;; --- Run/Debug
-(defun moonshot:list-executable-files (dir)
+(defun moonshot-list-executable-files (dir)
   "Find every executable files under `DIR'.
 Evaluates as nil when `DIR' is nil."
   (if dir
@@ -174,7 +168,7 @@ Evaluates as nil when `DIR' is nil."
     ;; `dir'=nil => empty
     nil))
 
-(defun* moonshot:file-list->distance-alist (fn file-names &key dist-fun)
+(defun* moonshot-file-list->distance-alist (fn file-names &key dist-fun)
   "Calculate string difference distances from `FN' of given `FILE-NAMES'using `DIST-FUN'.
 Evaluates as nil when `FN' or `FILE-NAMES' is nil."
   (block file-list->dist-alist
@@ -187,18 +181,18 @@ Evaluates as nil when `FN' or `FILE-NAMES' is nil."
                       i))
               file-names))))
 
-(defun moonshot:list-executable-files-and-sort-by (dir file-name)
+(defun moonshot-list-executable-files-and-sort-by (dir file-name)
   "Find every executable file names under `DIR'.
 The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
   (mapcar #'cdr
           (sort
-           (moonshot:file-list->distance-alist
+           (moonshot-file-list->distance-alist
             file-name
-            (moonshot:list-executable-files dir))
+            (moonshot-list-executable-files dir))
            (lambda (x y) (< (car x) (car y))))))
 ;; Try: (list-executable-files-and-sort-by "/bin" "sh")
 
-(defun moonshot:run-command-with (cmd mkcmd-fun run-fun)
+(defun moonshot-run-command-with (cmd mkcmd-fun run-fun)
   "Read and Run with `RUN-FUN' and pass `CMD' filtered by `MKCMD-FUN' as parameter."
   (let* ((cmd*
           (read-from-minibuffer "Cmd: " (funcall mkcmd-fun cmd))))
@@ -206,47 +200,46 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 
 
 ;;;###autoload
-(defun moonshot:run-executable ()
-  "Select an executable file in command `moonshot:project-build-dir', similar to buffer filename."
+(defun moonshot-run-executable ()
+  "Select an executable file in command `moonshot-project-build-dir', similar to buffer filename."
   (interactive)
   (let ((fn (buffer-file-name)))
     (ivy-read "Select an executable to run: "
-              (moonshot:list-executable-files-and-sort-by (moonshot:project-build-dir) fn)
+              (moonshot-list-executable-files-and-sort-by (moonshot-project-build-dir) fn)
               :action (lambda (cmd)
-                        (moonshot:run-command-with cmd
+                        (moonshot-run-command-with cmd
                                                    (lambda (cmd)
                                                      (format "cd '%s'; '%s'" (f-dirname cmd) cmd))
                                                    #'compile)))))
  
-(defun moonshot:alist-keys (l)
+(defun moonshot-alist-keys (l)
   "CARs of an Alist `L'."
   (cl-loop for i in l collect (car i)))
 
-(defvar moonshot:run-debugger/history nil)
+(defvar moonshot-run-debugger-history nil)
 
 
-(defun moonshot:%remove-sharp-comment (s)
+(defun moonshot-%remove-sharp-comment (s)
   "Remove shell comment section from string `S'."
   (s-trim (replace-regexp-in-string  "\\#.*$" "" s)))
 
 
 ;;;###autoload
-(defun moonshot:run-debugger (debugger)
-  "Launch debugger, one of `moonshot:debuggers', with an executable selection.
+(defun moonshot-run-debugger (selected-debugger)
+  "Launch debugger, one of `moonshot-debuggers', with an executable selection.
 
-`DEBUGGER' is member of `moonshot:debuggers'"
+`SELECTED-DEBUGGER' is member of `moonshot-debuggers'"
   (interactive (list (ivy-read "Select debugger: "
-                               (moonshot:alist-keys moonshot:debuggers)
+                               (moonshot-alist-keys moonshot-debuggers)
                                :require-match t
-                               :history 'moonshot:run-debugger/history)))
-  (message "debugger=[%s]" debugger)
+                               :history 'moonshot-run-debugger-history)))
   (let ((fn (buffer-file-name))
-        (debugger-cmd (moonshot:%remove-sharp-comment debugger))
-        (debugger-func (cdr (assoc debugger moonshot:debuggers))))
+        (debugger-cmd (moonshot-%remove-sharp-comment selected-debugger))
+        (debugger-func (cdr (assoc selected-debugger moonshot-debuggers))))
     (ivy-read "Select an executable to debug: "
-              (moonshot:list-executable-files-and-sort-by (moonshot:project-build-dir) fn)
+              (moonshot-list-executable-files-and-sort-by (moonshot-project-build-dir) fn)
               :action (lambda (cmd)
-                        (moonshot:run-command-with cmd
+                        (moonshot-run-command-with cmd
                                                    (lambda (cmd)
                                                      (format "%s \"%s\""
                                                              debugger-cmd cmd))
@@ -254,11 +247,11 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 
 
 ;;; Runner
-(defun moonshot:all-runners ()
+(defun moonshot-all-runners ()
   "Collect available runners."
-  (append moonshot:runners moonshot:runners-preset))
+  (append moonshot-runners moonshot-runners-preset))
 
-(defun moonshot:expand-path-vars (path-str)
+(defun moonshot-expand-path-vars (path-str)
   "Expand `PATH-STR' with following format specifiers.
 
 %a  absolute pathname            ( /usr/local/bin/netscape.bin )
@@ -267,7 +260,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 %e  extension of file name       ( bin )
 %d  directory                    ( /usr/local/bin/ )
 %p  project root directory       ( /home/who/blah/ ), using Projectile
-%b  project build directory      ( /home/who/blah/build/ ), using variable `moonshot:project-build-dir'"
+%b  project build directory      ( /home/who/blah/build/ ), using variable `moonshot-project-build-dir'"
   (let* ((s path-str)
          (abs-path (or (buffer-file-name) ""))
          (file-name "")
@@ -275,7 +268,7 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
          (file-ext "")
          (dir (or (pwd) ""))
          (project-root-dir (projectile-project-root))
-         (project-build-dir (moonshot:project-build-dir)))
+         (project-build-dir (moonshot-project-build-dir)))
     ;; fill in
     (unless (s-blank-str? abs-path)
       (setq file-name (or (f-filename abs-path) "")
@@ -303,19 +296,19 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
     s))
 
 
-(defvar moonshot:run-runner/history nil)
+(defvar moonshot-run-runner-history nil)
 
 ;;;###autoload
-(defun moonshot:run-runner ()
+(defun moonshot-run-runner ()
   "Run runner."
   (interactive)
   (ivy-read "Command: "
-            (moonshot:all-runners)
+            (moonshot-all-runners)
             :action (lambda (cmd)
-                      (moonshot:run-command-with cmd
-                                                 #'moonshot:expand-path-vars
+                      (moonshot-run-command-with cmd
+                                                 #'moonshot-expand-path-vars
                                                  #'compile))
-            :history 'moonshot:run-runner/history))
+            :history 'moonshot-run-runner-history))
 
 
 
