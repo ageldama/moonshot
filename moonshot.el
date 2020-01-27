@@ -116,6 +116,11 @@ Can be a string or a form."
   :group 'moonshot
   :type '(list string))
 
+(defcustom moonshot-file-name-distance-function
+  #'levenshtein-distance
+  "A function to calculate distance between filenames."
+  :group 'moonshot
+  :type 'function)
 
 
 
@@ -168,15 +173,16 @@ Evaluates as nil when `DIR' is nil."
     ;; `dir'=nil => empty
     nil))
 
-(defun* moonshot-file-list->distance-alist (fn file-names &key dist-fun)
-  "Calculate string difference distances from `FN' of given `FILE-NAMES'using `DIST-FUN'.
+(defun moonshot-file-list->distance-alist (fn file-names)
+  "Calculate string difference distances from `FN' of given `FILE-NAMES'.
+By using `moonshot-file-name-distance-function'.
 Evaluates as nil when `FN' or `FILE-NAMES' is nil."
   (block file-list->dist-alist
     (unless (and fn file-names)
       (return-from file-list->dist-alist nil))
     (let ((fn* (f-filename fn)))
       (mapcar (lambda (i)
-                (cons (funcall (or dist-fun #'levenshtein-distance)
+                (cons (funcall moonshot-file-name-distance-function
                                fn* (f-filename i))
                       i))
               file-names))))
