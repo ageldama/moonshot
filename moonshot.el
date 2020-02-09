@@ -62,9 +62,6 @@
 ;;      %p  project root directory       ( /home/who/blah/ ), using Projectile
 ;;      %b  project build directory      ( /home/who/blah/build/ ), using `moonshot-project-build-dir'"
 
-;; TODO: defcustom -> defvar-local
-;; TODO: ivy-read -> completing-read
-
 ;;; Code:
 (require 'cl-lib)
 (require 'f)
@@ -77,13 +74,10 @@
 
 ;;; --- Variables
 
-(defcustom moonshot-project-build-dir nil
-  "Project build directory.
-Can be a string or a form."
-  :group 'moonshot
-  :type 'sexp)
+(defvar-local moonshot-project-build-dir nil
+  "Project build directory. Can be a string or a form.")
 
-(defcustom moonshot-debuggers
+(defvar-local moonshot-debuggers
   '(;; `COMMAND' . `DEBUGGER-FN'
     ("gdb #realgud" . realgud:gdb)
     ("gdb #gud" . gud-gdb)
@@ -98,11 +92,9 @@ Can be a string or a form."
     ("zshdb #realgud" . realgud:zshdb)
     ("kshdb #realgud" . realgud:kshdb)
     ("dgawk #realgud" . realgud:dgawk))
-  "Supported debuggers."
-  :group 'moonshot
-  :type '(alist :key string :value function))
+  "Supported debuggers.")
 
-(defcustom moonshot-runners-preset
+(defvar-local moonshot-runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
     "cd \"%b\"; ninja"
     "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; \"%a\"  # Run with Virtualenv"
@@ -111,21 +103,15 @@ Can be a string or a form."
     "cd \"%p\"; \"%a\"  # Run script"
     "clang-format -i \"%a\""
     "clang-tidy -p \"%b\" \"%a\" #--fix")
-  "Available shell command presets."
-  :group 'moonshot
-  :type '(list string))
+  "Available shell command presets.")
 
-(defcustom moonshot-runners
+(defvar-local moonshot-runners
   nil
-  "Shell commands for file variables / `.dir-locals.el'."
-  :group 'moonshot
-  :type '(list string))
+  "Shell commands for file variables / `.dir-locals.el'.")
 
-(defcustom moonshot-file-name-distance-function
+(defvar-local moonshot-file-name-distance-function
   #'levenshtein-distance
-  "A function to calculate distance between filenames."
-  :group 'moonshot
-  :type 'function)
+  "A function to calculate distance between filenames.")
 
 
 
@@ -213,25 +199,27 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
           (read-from-minibuffer "Cmd: " (funcall mkcmd-fun cmd))))
     (funcall run-fun cmd*)))
 
+(defun moonshot-%make-simple-completing-read-collection (coll)
+  "Prepare simplest form of a collection for `completing-read' from `COLL'."
+  (mapcar (lambda (i) (list i i)) coll))
 
 ;;;###autoload
 (defun moonshot-run-executable ()
   "Select an executable file in command `moonshot-project-build-dir', similar to buffer filename."
   (interactive)
-  (let ((fn (buffer-file-name)))
-    (ivy-read "Select an executable to run: "
-              (moonshot-list-executable-files-and-sort-by (moonshot-project-build-dir) fn)
-              :action (lambda (cmd)
-                        (moonshot-run-command-with cmd
-                                                   (lambda (cmd)
-                                                     (format "cd '%s'; '%s'" (f-dirname cmd) cmd))
-                                                   #'compile)))))
+  (let* ((fn (buffer-file-name))
+         (coll (moonshot-%make-simple-completing-read-collection
+                (moonshot-list-executable-files-and-sort-by (moonshot-project-build-dir) fn)))
+         (cmd (completing-read "Select an executable to run: " coll)))
+    (moonshot-run-command-with cmd
+                               (lambda (cmd)
+                                 (format "cd '%s'; '%s'" (f-dirname cmd) cmd))
+                               #'compile)))
  
 (defun moonshot-alist-keys (l)
   "CARs of an Alist `L'."
   (cl-loop for i in l collect (car i)))
 
-(defvar moonshot-run-debugger-history nil)
 
 
 (defun moonshot-%remove-sharp-comment (s)
@@ -240,25 +228,26 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
 
 
 ;;;###autoload
-(defun moonshot-run-debugger (selected-debugger)
+(defun moonshot-run-debugger ()
   "Launch debugger, one of `moonshot-debuggers', with an executable selection.
 
 `SELECTED-DEBUGGER' is member of `moonshot-debuggers'"
-  (interactive (list (ivy-read "Select debugger: "
-                               (moonshot-alist-keys moonshot-debuggers)
-                               :require-match t
-                               :history 'moonshot-run-debugger-history)))
-  (let ((fn (buffer-file-name))
-        (debugger-cmd (moonshot-%remove-sharp-comment selected-debugger))
-        (debugger-func (cdr (assoc selected-debugger moonshot-debuggers))))
-    (ivy-read "Select an executable to debug: "
-              (moonshot-list-executable-files-and-sort-by (moonshot-project-build-dir) fn)
-              :action (lambda (cmd)
-                        (moonshot-run-command-with cmd
-                                                   (lambda (cmd)
-                                                     (format "%s \"%s\""
-                                                             debugger-cmd cmd))
-                                                   debugger-func)))))
+  (interactive)
+  (let* ((selected-debugger (completing-read "Select debugger: "
+                                             (moonshot-%make-simple-completing-read-collection
+                                              (moonshot-alist-keys moonshot-debuggers))))
+         (fn (buffer-file-name))
+         (debugger-cmd (moonshot-%remove-sharp-comment selected-debugger))
+         (debugger-func (cdr (assoc selected-debugger moonshot-debuggers)))
+         (cmd (completing-read "Select an executable to debug: "
+                               (moonshot-%make-simple-completing-read-collection
+                                (moonshot-list-executable-files-and-sort-by
+                                 (moonshot-project-build-dir) fn)))))
+    (moonshot-run-command-with cmd
+                               (lambda (cmd)
+                                 (format "%s \"%s\""
+                                         debugger-cmd cmd))
+                               debugger-func)))
 
 
 ;;; Runner
@@ -311,19 +300,17 @@ The list is sorted by `file-list->distance-alist' with `FILE-NAME'."
     s))
 
 
-(defvar moonshot-run-runner-history nil)
+
 
 ;;;###autoload
 (defun moonshot-run-runner ()
   "Run runner."
   (interactive)
-  (ivy-read "Command: "
-            (moonshot-all-runners)
-            :action (lambda (cmd)
-                      (moonshot-run-command-with cmd
-                                                 #'moonshot-expand-path-vars
-                                                 #'compile))
-            :history 'moonshot-run-runner-history))
+  (let ((cmd (completing-read "Command: "
+                              (moonshot-%make-simple-completing-read-collection
+                               (moonshot-all-runners)))))
+    (moonshot-run-command-with cmd #'moonshot-expand-path-vars #'compile)))
+
 
 
 
