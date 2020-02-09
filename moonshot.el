@@ -66,7 +66,6 @@
 (require 'cl-lib)
 (require 'f)
 (require 's)
-(require 'ivy)
 (require 'realgud)
 (require 'seq)
 (require 'levenshtein)
