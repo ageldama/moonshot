@@ -13,7 +13,10 @@
 ;; See `LICENSE'
 
 ;;; Commentary:
-
+;; This package locates a project build directory for the current
+;; buffer, and makes it easier to run common debug and execution
+;; commands from that directory.
+;;
 ;; << Project Build Directory >>
 ;;
 ;; 1) File local variable `moonshot-project-build-dir', and if it is:
@@ -59,6 +62,8 @@
 ;;      %p  project root directory       ( /home/who/blah/ ), using Projectile
 ;;      %b  project build directory      ( /home/who/blah/build/ ), using `moonshot-project-build-dir'"
 
+;; TODO: defcustom -> defvar-local
+;; TODO: ivy-read -> completing-read
 
 ;;; Code:
 (require 'cl-lib)
@@ -177,9 +182,9 @@ Evaluates as nil when `DIR' is nil."
   "Calculate string difference distances from `FN' of given `FILE-NAMES'.
 By using `moonshot-file-name-distance-function'.
 Evaluates as nil when `FN' or `FILE-NAMES' is nil."
-  (block file-list->dist-alist
+  (cl-block file-list->dist-alist
     (unless (and fn file-names)
-      (return-from file-list->dist-alist nil))
+      (cl-return-from file-list->dist-alist nil))
     (let ((fn* (f-filename fn)))
       (mapcar (lambda (i)
                 (cons (funcall moonshot-file-name-distance-function
