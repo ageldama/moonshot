@@ -1,3 +1,5 @@
+[[https://melpa.org/#/moonshot][file:https://melpa.org/packages/moonshot-badge.svg]]
+
 #+TITLE: moonshot.el
 
 
