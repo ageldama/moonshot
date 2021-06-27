@@ -103,6 +103,8 @@
 
 (defvar-local moonshot-runners-preset
   '("cmake -S\"%p\" -B\"%b\" -GNinja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=on"
+    "cd \"%p\"; ninja -v"
+    "cd \"%p\"; VERBOSE=1 make"
     "cd \"%b\"; ninja"
     "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; \"%a\"  # Run with Virtualenv"
     "source \"${VIRTUAL_ENV}/bin/activate\"; cd \"%d\"; pip install -r requirements.txt  # Run with Virtualenv"
